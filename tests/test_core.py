@@ -8,6 +8,7 @@ from budget.core import (
     filter_by_category,
     get_balance,
     load_transactions_from_csv,
+    monthly_summary,
 )
 
 
@@ -272,3 +273,68 @@ def test_load_transactions_from_csv_reads_step1_data() -> None:
         "memo": "",
     }
     assert isinstance(transactions[0]["amount"], int)
+
+
+def test_monthly_summary_groups_amounts_by_month() -> None:
+    """Monthly summary should split income, expense, and net by YYYY-MM."""
+    transactions = [
+        {
+            "date": "2026-01-05",
+            "type": "지출",
+            "category": "식비",
+            "description": "점심식사",
+            "amount": -12000,
+            "memo": "",
+        },
+        {
+            "date": "2026-01-07",
+            "type": "수입",
+            "category": "급여",
+            "description": "월급",
+            "amount": 3500000,
+            "memo": "1월급여",
+        },
+        {
+            "date": "2026-02-01",
+            "type": "지출",
+            "category": "주거",
+            "description": "월세",
+            "amount": -500000,
+            "memo": "",
+        },
+        {
+            "date": "2026-02-03",
+            "type": "수입",
+            "category": "급여",
+            "description": "부업",
+            "amount": 300000,
+            "memo": "",
+        },
+    ]
+
+    summary = monthly_summary(transactions)
+
+    assert summary == {
+        "2026-01": {"income": 3500000, "expense": -12000, "net": 3488000},
+        "2026-02": {"income": 300000, "expense": -500000, "net": -200000},
+    }
+
+
+def test_monthly_summary_returns_empty_dict_for_empty_transactions() -> None:
+    """Monthly summary should be empty when there are no transactions."""
+    assert monthly_summary([]) == {}
+
+
+def test_monthly_summary_matches_step1_csv_totals() -> None:
+    """Monthly summary should match the totals computed from step1 CSV data."""
+    transactions = load_transactions_from_csv("data/step1_transactions.csv")
+
+    summary = monthly_summary(transactions)
+
+    assert summary == {
+        "2026-01": {
+            "income": 3525000,
+            "expense": -158300,
+            "net": 3366700,
+        }
+    }

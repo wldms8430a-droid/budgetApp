@@ -17,6 +17,14 @@ class Transaction(TypedDict):
     memo: str
 
 
+class MonthlySummary(TypedDict):
+    """Monthly aggregated totals for transactions."""
+
+    income: int
+    expense: int
+    net: int
+
+
 def add_transaction(
     transactions: list[Transaction],
     transaction: Transaction,
@@ -60,3 +68,21 @@ def load_transactions_from_csv(file_path: str) -> list[Transaction]:
             }
             for row in csv.DictReader(csv_file)
         ]
+
+
+def monthly_summary(
+    transactions: list[Transaction],
+) -> dict[str, MonthlySummary]:
+    """Return income, expense, and net totals grouped by month."""
+    summary: dict[str, MonthlySummary] = {}
+    for transaction in transactions:
+        month = transaction["date"][:7]
+        if month not in summary:
+            summary[month] = {"income": 0, "expense": 0, "net": 0}
+        amount = transaction["amount"]
+        if amount > 0:
+            summary[month]["income"] += amount
+        else:
+            summary[month]["expense"] += amount
+        summary[month]["net"] += amount
+    return summary
