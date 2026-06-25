@@ -22,3 +22,8 @@ def add_transaction(
     updated_transactions = transactions.copy()
     updated_transactions.append(transaction)
     return updated_transactions
+
+
+def get_balance(transactions: list[Transaction]) -> float:
+    """Return the total balance from all transaction amounts."""
+    return float(sum(transaction["amount"] for transaction in transactions))
