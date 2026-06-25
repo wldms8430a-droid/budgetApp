@@ -27,3 +27,16 @@ def add_transaction(
 def get_balance(transactions: list[Transaction]) -> float:
     """Return the total balance from all transaction amounts."""
     return float(sum(transaction["amount"] for transaction in transactions))
+
+
+def filter_by_category(
+    transactions: list[Transaction],
+    category: str,
+) -> list[Transaction]:
+    """Return transactions whose category matches the requested value."""
+    normalized_category = category.lower()
+    return [
+        transaction
+        for transaction in transactions
+        if transaction["category"].lower() == normalized_category
+    ]

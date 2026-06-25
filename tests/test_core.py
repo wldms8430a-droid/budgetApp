@@ -3,7 +3,7 @@
 import csv
 from pathlib import Path
 
-from budget.core import add_transaction, get_balance
+from budget.core import add_transaction, filter_by_category, get_balance
 
 
 def test_add_transaction_increases_length() -> None:
@@ -151,3 +151,103 @@ def test_get_balance_matches_step2_csv_total() -> None:
     balance = get_balance(transactions)
 
     assert balance == 24285027.0
+
+
+def test_filter_by_category_matches_case_insensitively() -> None:
+    """Category filtering should ignore letter case."""
+    transactions = [
+        {
+            "date": "2026-02-08",
+            "type": "수입",
+            "category": "Food",
+            "description": "Lunch refund",
+            "amount": 5000,
+            "memo": "",
+        },
+        {
+            "date": "2026-03-07",
+            "type": "지출",
+            "category": "식비",
+            "description": "카페",
+            "amount": -17371,
+            "memo": "현금",
+        },
+        {
+            "date": "2026-01-20",
+            "type": "지출",
+            "category": "food",
+            "description": "Snack",
+            "amount": -3000,
+            "memo": "",
+        },
+    ]
+
+    filtered_transactions = filter_by_category(transactions, "FOOD")
+
+    assert len(filtered_transactions) == 2
+    assert all(
+        transaction["category"].lower() == "food"
+        for transaction in filtered_transactions
+    )
+
+
+def test_filter_by_category_returns_empty_list_for_missing_category() -> None:
+    """Filtering by a missing category should return an empty list."""
+    transactions = [
+        {
+            "date": "2026-01-05",
+            "type": "지출",
+            "category": "식비",
+            "description": "점심식사",
+            "amount": -12000,
+            "memo": "",
+        },
+        {
+            "date": "2026-01-22",
+            "type": "지출",
+            "category": "의료",
+            "description": "병원 진료",
+            "amount": -30000,
+            "memo": "",
+        },
+    ]
+
+    filtered_transactions = filter_by_category(transactions, "통신")
+
+    assert filtered_transactions == []
+
+
+def test_filter_by_category_returns_independent_list() -> None:
+    """Filtered results should not mutate the original transaction list."""
+    transactions = [
+        {
+            "date": "2026-01-29",
+            "type": "지출",
+            "category": "식비",
+            "description": "편의점",
+            "amount": -33021,
+            "memo": "",
+        },
+        {
+            "date": "2026-03-17",
+            "type": "지출",
+            "category": "식비",
+            "description": "분식집",
+            "amount": -23926,
+            "memo": "",
+        },
+        {
+            "date": "2026-03-23",
+            "type": "지출",
+            "category": "통신",
+            "description": "휴대폰 요금",
+            "amount": -52098,
+            "memo": "",
+        },
+    ]
+
+    filtered_transactions = filter_by_category(transactions, "식비")
+    filtered_transactions.pop()
+
+    assert len(filtered_transactions) == 1
+    assert len(transactions) == 3
