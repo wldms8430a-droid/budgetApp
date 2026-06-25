@@ -98,7 +98,7 @@ def test_add_transaction_allows_empty_description() -> None:
 
 
 def test_get_balance_returns_sum_of_income_and_expense() -> None:
-    """Balance should be the sum of positive and negative transaction amounts."""
+    """Balance should equal the sum of positive and negative amounts."""
     transactions = [
         {
             "date": "2026-01-05",
